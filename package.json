@@ -1,0 +1,14 @@
+{
+  "name": "email-job-scheduler",
+  "private": true,
+  "packageManager": "pnpm@9.15.0",
+  "scripts": {
+    "dev": "pnpm --parallel --filter server --filter web dev",
+    "dev:api": "pnpm --filter server dev",
+    "dev:worker": "pnpm --filter server worker",
+    "dev:web": "pnpm --filter web dev",
+    "db:migrate": "pnpm --filter server prisma migrate dev",
+    "db:generate": "pnpm --filter server prisma generate",
+    "postinstall": "pnpm --filter server prisma generate"
+  }
+}

@@ -1,0 +1,101 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum EmailStatus {
+  scheduled
+  processing
+  sent
+  failed
+}
+
+model User {
+  id        String   @id @default(uuid())
+  googleId  String   @unique
+  email     String   @unique
+  name      String
+  avatarUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  slack     SlackConnection?
+  senders   Sender[]
+  campaigns Campaign[]
+}
+
+model SlackConnection {
+  id         String   @id @default(uuid())
+  userId     String   @unique
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  teamId     String?
+  teamName   String?
+  botToken   String
+  webhookUrl String?
+  channelId  String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Sender {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  fromEmail   String
+  fromName    String
+  smtpHost    String
+  smtpPort    Int
+  smtpUser    String
+  smtpPass    String
+  hourlyLimit Int
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  campaigns   Campaign[]
+
+  @@index([userId])
+}
+
+model Campaign {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  senderId    String
+  sender      Sender   @relation(fields: [senderId], references: [id])
+  subject     String
+  body        String
+  startTime   DateTime
+  delayMs     Int
+  hourlyLimit Int
+  createdAt   DateTime @default(now())
+  emails      Email[]
+
+  @@index([userId])
+}
+
+model Email {
+  id             String      @id @default(uuid())
+  campaignId     String
+  campaign       Campaign    @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  recipient      String
+  sequence       Int
+  scheduledAt    DateTime
+  status         EmailStatus @default(scheduled)
+  sentAt         DateTime?
+  error          String?
+  jobId          String      @unique
+  idempotencyKey String      @unique
+  attemptCount   Int         @default(0)
+  previewUrl     String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  @@unique([campaignId, recipient])
+  @@index([status, scheduledAt])
+  @@index([recipient])
+}
