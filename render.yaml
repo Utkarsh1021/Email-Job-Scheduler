@@ -72,12 +72,13 @@ services:
       - key: MAILER_PASS
         value: "<ETHEREAL_PASS>"
 
-  # Front‑end – static site build (Render's "Static Site" type)
-  - type: static
+  # Front‑end – static site build
+  - type: web
     name: outbox-web
+    runtime: static
     plan: free
     buildCommand: "pnpm --filter web build"
-    publishPath: "apps/web/dist"
+    staticPublishPath: "apps/web/dist"
     envVars:
       - key: VITE_API_URL
         value: "https://outbox-backend.onrender.com"
