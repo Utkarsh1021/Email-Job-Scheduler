@@ -17,6 +17,7 @@ services:
   - type: elasticsearch
     name: outbox-search
     plan: free
+    region: oregon
     # Render provides ELASTICSEARCH_URL env var automatically
 
   # Backend API – Docker service
