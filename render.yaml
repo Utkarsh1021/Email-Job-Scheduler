@@ -31,8 +31,8 @@ services:
       - key: ES_JAVA_OPTS
         value: "-Xms512m -Xmx512m"
 
-  # Backend API – Docker service
-    # 3️⃣ Backend API – Docker‑based web service
+  
+  # 3️⃣ Backend API – Docker‑based web service
   - type: web
     name: outbox-backend
     runtime: docker
@@ -41,7 +41,7 @@ services:
     dockerfilePath: apps/server/Dockerfile
     # Render injects a $PORT env var at runtime; you can keep the explicit value
     # if your code is hard‑coded to listen on 3000, otherwise remove the line.
-      envVars:
+    envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
