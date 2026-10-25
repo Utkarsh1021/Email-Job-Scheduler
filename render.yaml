@@ -41,7 +41,7 @@ services:
     dockerfilePath: apps/server/Dockerfile
     # Render injects a $PORT env var at runtime; you can keep the explicit value
     # if your code is hard‑coded to listen on 3000, otherwise remove the line.
-    envVars:
+      envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
@@ -50,9 +50,11 @@ services:
         fromDatabase:
           name: outbox-db
           property: connectionString
+      # ✅ Redis URL – correctly reference the Redis service
       - key: REDIS_URL
         fromService: outbox-redis
         value: "${SERVICE_OUTBOX_REDIS_URL}"
+      # ✅ Elasticsearch URL – correctly reference the Elasticsearch private service
       - key: ELASTICSEARCH_URL
         fromService: outbox-search
         value: "${SERVICE_OUTBOX_SEARCH_URL}"
