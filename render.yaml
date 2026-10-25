@@ -32,9 +32,9 @@ services:
         value: "-Xms512m -Xmx512m"
 
   # Backend API – Docker service
-  - type: docker
+  - type: web
     name: outbox-backend
-    env: docker
+    runtime: docker
     plan: free
     region: oregon
     dockerfilePath: apps/server/Dockerfile
