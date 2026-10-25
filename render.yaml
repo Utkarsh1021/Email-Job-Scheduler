@@ -52,12 +52,16 @@ services:
           property: connectionString
       # ✅ Redis URL – correctly reference the Redis service
       - key: REDIS_URL
-        fromService: outbox-redis
-        value: "${SERVICE_OUTBOX_REDIS_URL}"
+        fromService: 
+          name: outbox-redis
+          type: redis
+          property: connectionString
       # ✅ Elasticsearch URL – correctly reference the Elasticsearch private service
       - key: ELASTICSEARCH_URL
-        fromService: outbox-search
-        value: "${SERVICE_OUTBOX_SEARCH_URL}"
+        fromService: 
+          name: outbox-search
+          type: pserv
+          property: connectionString
       - key: SLACK_CLIENT_ID
         value: "<YOUR_SLACK_CLIENT_ID>"
       - key: SLACK_CLIENT_SECRET
