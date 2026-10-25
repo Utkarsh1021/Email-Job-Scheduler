@@ -1,21 +1,23 @@
-services:
-  # PostgreSQL managed instance (Render provides a free tier)
-  - type: postgresql
-    name: outbox-db
+databases:
+  - name: outbox-db
     plan: free
-    # Render will create DATABASE_URL env var automatically
+    # Optional: specify a custom DB name, user, and region
+    # databaseName: outbox
+    # user: outbox_user
+    # region: oregon
 
-  # Redis managed instance (free tier as well)
+services:
+  # Redis managed instance (free tier)
   - type: redis
     name: outbox-redis
     plan: free
     # Render provides REDIS_URL env var automatically
 
-  # Elasticsearch managed instance (optional – Render offers a free tier on the "starter" plan)
+  # Elasticsearch managed instance (free tier – "starter" for ES)
   - type: elasticsearch
     name: outbox-search
     plan: free
-    # Render provides ELASTICSEARCH_URL env var
+    # Render provides ELASTICSEARCH_URL env var automatically
 
   # Backend API – Docker service
   - type: docker
@@ -28,15 +30,15 @@ services:
     ports:
       - port: 3000
         protocol: http
-    # Environment variables – replace placeholder values with your secrets
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: "3000"
       - key: DATABASE_URL
-        fromService: outbox-db
-        value: "${SERVICE_OUTBOX_DB_URL}"   # Render substitutes automatically
+        fromDatabase:
+          name: outbox-db
+          property: connectionString
       - key: REDIS_URL
         fromService: outbox-redis
         value: "${SERVICE_OUTBOX_REDIS_URL}"
@@ -66,4 +68,4 @@ services:
     publishPath: "apps/web/dist"
     envVars:
       - key: VITE_API_URL
-        value: "https://outbox-backend.onrender.com"  # Render default domain for the backend service
+        value: "https://outbox-backend.onrender.com"
