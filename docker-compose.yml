@@ -1,58 +1,75 @@
+version: "3.9"
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: ejs-postgres
-    restart: unless-stopped
+  db:
+    image: postgres:15-alpine
     environment:
-      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: email_scheduler
     ports:
-      - "5433:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD", "pg_isready", "-U", "postgres"]
       interval: 5s
       timeout: 5s
-      retries: 10
+      retries: 5
 
   redis:
     image: redis:7-alpine
-    container_name: ejs-redis
-    restart: unless-stopped
-    command: ["redis-server", "--appendonly", "yes", "--appendfsync", "everysec"]
     ports:
       - "6379:6379"
-    volumes:
-      - redis_data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
-      timeout: 3s
-      retries: 10
+      timeout: 5s
+      retries: 5
 
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
-    container_name: ejs-elasticsearch
-    restart: unless-stopped
+  es:
+    image: elasticsearch:8.12.0
     environment:
       discovery.type: single-node
-      xpack.security.enabled: "false"
-      xpack.security.http.ssl.enabled: "false"
       ES_JAVA_OPTS: "-Xms512m -Xmx512m"
     ports:
       - "9200:9200"
-    volumes:
-      - es_data:/usr/share/elasticsearch/data
     healthcheck:
-      test: ["CMD-SHELL", "curl -s http://localhost:9200 >/dev/null || exit 1"]
+      test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health"]
       interval: 10s
       timeout: 5s
-      retries: 20
+      retries: 5
 
-volumes:
-  postgres_data:
-  redis_data:
-  es_data:
+  backend:
+    build:
+      context: ./apps/server
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: development
+      PORT: "3000"
+      DATABASE_URL: "postgresql://postgres:postgres@db:5432/outbox-db"
+      REDIS_URL: "redis://redis:6379"
+      ELASTICSEARCH_URL: "http://es:9200"
+      SLACK_CLIENT_ID: "<YOUR_SLACK_CLIENT_ID>"
+      SLACK_CLIENT_SECRET: "<YOUR_SLACK_CLIENT_SECRET>"
+      JWT_SECRET: "<YOUR_RANDOM_JWT_SECRET>"
+      MAILER_HOST: "smtp.ethereal.email"
+      MAILER_PORT: "587"
+      MAILER_USER: "<ETHEREAL_USER>"
+      MAILER_PASS: "<ETHEREAL_PASS>"
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      es:
+        condition: service_healthy
 
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    environment:
+      VITE_API_URL: "http://localhost:3000"
+    ports:
+      - "5173:5173"
+    depends_on:
+      backend:
+        condition: service_started
