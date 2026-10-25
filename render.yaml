@@ -1,12 +1,9 @@
-databases:
-  - name: outbox-db
-    plan: free
-    # Optional: specify a custom DB name, user, and region
-    # databaseName: outbox
-    # user: outbox_user
-    # region: oregon
-
 services:
+  # PostgreSQL managed instance (free tier)
+  - type: postgresql
+    name: outbox-db
+    plan: free
+
   # Redis managed instance (free tier)
   - type: redis
     name: outbox-redis
@@ -40,8 +37,6 @@ services:
     plan: free
     region: oregon
     dockerfilePath: apps/server/Dockerfile
-    # Render injects a $PORT env var at runtime; you can keep the explicit value
-    # if your code is hard‑coded to listen on 3000, otherwise remove the line.
     envVars:
       - key: NODE_ENV
         value: production
@@ -51,18 +46,13 @@ services:
         fromDatabase:
           name: outbox-db
           property: connectionString
-      # ✅ Redis URL – correctly reference the Redis service
       - key: REDIS_URL
-        fromService: 
+        fromService:
           name: outbox-redis
           type: redis
           property: connectionString
-      # ✅ Elasticsearch URL – correctly reference the Elasticsearch private service
       - key: ELASTICSEARCH_URL
-        fromService: 
-          name: outbox-search
-          type: pserv
-          property: hostport
+        value: "${ELASTICSEARCH_URL}"  # set this secret in Render UI
       - key: SLACK_CLIENT_ID
         value: "<YOUR_SLACK_CLIENT_ID>"
       - key: SLACK_CLIENT_SECRET
@@ -78,8 +68,8 @@ services:
       - key: MAILER_PASS
         value: "<ETHEREAL_PASS>"
 
-  # Front‑end – static site build
-  - type: web
+  # Front‑end – static site build (free tier)
+  - type: static
     name: outbox-web
     runtime: static
     plan: free
