@@ -18,7 +18,7 @@ services:
   - type: pserv
     name: outbox-search
     runtime: docker
-    plan: starter
+    plan: free
     region: oregon
     repo: https://github.com/render-examples/elasticsearch
     # Disk for data persistence
