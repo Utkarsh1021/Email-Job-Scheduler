@@ -39,20 +39,20 @@ services:
     region: oregon
     dockerfilePath: apps/server/Dockerfile
     # Service will listen on the port provided by Render via $PORT
-    envVars:
+      envVars:
       - key: NODE_ENV
         value: production
-      # Render supplies a $PORT env var at runtime; you can keep this if your
-      # server is hard‑coded to listen on 3000, otherwise remove it.
       - key: PORT
         value: "3000"
       - key: DATABASE_URL
         fromDatabase:
           name: outbox-db
           property: connectionString
+      # ✅ REDIS_URL – correctly reference the Redis service
       - key: REDIS_URL
         fromService: outbox-redis
         value: "${SERVICE_OUTBOX_REDIS_URL}"
+      # ✅ ELASTICSEARCH_URL – correctly reference the Elasticsearch private service
       - key: ELASTICSEARCH_URL
         fromService: outbox-search
         value: "${SERVICE_OUTBOX_SEARCH_URL}"
