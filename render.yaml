@@ -13,12 +13,23 @@ services:
     plan: free
     # Render provides REDIS_URL env var automatically
 
-  # Elasticsearch managed instance (free tier – "starter" for ES)
-  - type: elasticsearch
+  # Elasticsearch private service (Docker, using official image)
+  - type: pserv
     name: outbox-search
-    plan: free
+    runtime: docker
+    plan: starter
     region: oregon
-    # Render provides ELASTICSEARCH_URL env var automatically
+    repo: https://github.com/render-examples/elasticsearch
+    # Disk for data persistence
+    disk:
+      name: es-data
+      mountPath: /usr/share/elasticsearch/data
+      sizeGB: 10
+    envVars:
+      - key: discovery.type
+        value: single-node
+      - key: ES_JAVA_OPTS
+        value: "-Xms512m -Xmx512m"
 
   # Backend API – Docker service
   - type: docker
