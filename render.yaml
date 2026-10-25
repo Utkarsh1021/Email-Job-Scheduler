@@ -1,9 +1,12 @@
-services:
-  # PostgreSQL managed instance (free tier)
-  - type: postgresql
-    name: outbox-db
+databases:
+  - name: outbox-db
     plan: free
+    # Optional: specify a custom DB name, user, and region
+    # databaseName: outbox
+    # user: outbox_user
+    # region: oregon
 
+services:
   # Redis managed instance (free tier)
   - type: redis
     name: outbox-redis
@@ -11,26 +14,11 @@ services:
     ipAllowList: []
     # Render provides REDIS_URL env var automatically
 
-  # Elasticsearch private service (Docker, using official image)
-  - type: pserv
-    name: outbox-search
-    runtime: docker
-    plan: free
-    region: oregon
-    repo: https://github.com/render-examples/elasticsearch
-    # Disk for data persistence
-    # disk:
-    #   name: es-data
-    #   mountPath: /usr/share/elasticsearch/data
-    #   sizeGB: 10
-    envVars:
-      - key: discovery.type
-        value: single-node
-      - key: ES_JAVA_OPTS
-        value: "-Xms512m -Xmx512m"
+  # Elasticsearch external service – use a free‑tier cloud provider
+  # (no pserv here; add the endpoint as a secret in Render UI)
+  # The backend will read ELASTICSEARCH_URL from its env vars.
 
-  
-  # 3️⃣ Backend API – Docker‑based web service
+  # Backend API – Docker‑based web service
   - type: web
     name: outbox-backend
     runtime: docker
@@ -47,10 +35,8 @@ services:
           name: outbox-db
           property: connectionString
       - key: REDIS_URL
-        fromService:
-          name: outbox-redis
-          type: redis
-          property: connectionString
+        fromService: outbox-redis
+        value: "${SERVICE_OUTBOX_REDIS_URL}"
       - key: ELASTICSEARCH_URL
         value: "${ELASTICSEARCH_URL}"  # set this secret in Render UI
       - key: SLACK_CLIENT_ID
@@ -68,7 +54,7 @@ services:
       - key: MAILER_PASS
         value: "<ETHEREAL_PASS>"
 
-  # Front‑end – static site build (free tier)
+  # Front‑end – static site build
   - type: static
     name: outbox-web
     runtime: static
