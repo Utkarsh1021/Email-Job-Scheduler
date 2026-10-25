@@ -11,6 +11,7 @@ services:
   - type: redis
     name: outbox-redis
     plan: free
+    ipAllowList: []
     # Render provides REDIS_URL env var automatically
 
   # Elasticsearch private service (Docker, using official image)
@@ -61,7 +62,7 @@ services:
         fromService: 
           name: outbox-search
           type: pserv
-          property: connectionString
+          property: hostport
       - key: SLACK_CLIENT_ID
         value: "<YOUR_SLACK_CLIENT_ID>"
       - key: SLACK_CLIENT_SECRET
