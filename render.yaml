@@ -22,10 +22,10 @@ services:
     region: oregon
     repo: https://github.com/render-examples/elasticsearch
     # Disk for data persistence
-    disk:
-      name: es-data
-      mountPath: /usr/share/elasticsearch/data
-      sizeGB: 10
+    # disk:
+    #   name: es-data
+    #   mountPath: /usr/share/elasticsearch/data
+    #   sizeGB: 10
     envVars:
       - key: discovery.type
         value: single-node
